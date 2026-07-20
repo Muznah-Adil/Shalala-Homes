@@ -38,6 +38,14 @@
       @for (r of visible(); track r.id) {
         <article class="poster">
           <div class="poster__img">
+            @if (photos(r).length > 0) {
+              <button type="button" class="poster__view"
+                      (click)="viewPhotos(r)"
+                      [disabled]="generatingPdf() !== null"
+                      [attr.aria-label]="'View photos of ' + r.address + ' (PDF)'">
+                {{ generatingPdf() === r.id ? 'Preparing…' : 'View Photos' }}
+              </button>
+            }
             @if (cover(r)) {
               <img [src]="cover(r)" [alt]="r.address + ' rental poster'" loading="lazy" />
             } @else {

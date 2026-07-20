@@ -47,7 +47,7 @@ export class AdminDashboard implements OnInit {
     city: ['', Validators.required],
     province: ['ON', Validators.required],
     postal_code: [''],
-    image_url: ['', Validators.required],
+    image_url: [''],
     image_urls_text: [''], // one photo URL per line -> image_urls array
   });
 
