@@ -41,14 +41,14 @@ export class FeaturedRentals implements OnInit {
 
   waLink(r: Rental): string {
     const msg = encodeURIComponent(
-      `Hi Shalala Homes, I'm interested in the ${r.address} listing. Could you send more photos?`,
+      `Hi, I'm interested in the ${r.address} listing. When can I visit the home?`,
     );
     return `https://wa.me/${PHONE}?text=${msg}`;
   }
 
   smsLink(r: Rental): string {
     const msg = encodeURIComponent(
-      `Hi Shalala Homes, I'm interested in the ${r.address} listing. Could you send more photos?`,
+      `Hi, I'm interested in the ${r.address} listing. When can I visit the home?`,
     );
     return `sms:+${PHONE}?&body=${msg}`;
   }

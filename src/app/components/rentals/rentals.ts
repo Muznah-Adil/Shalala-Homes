@@ -8,6 +8,7 @@ import { jsPDF } from 'jspdf';
    - Dark banner header
    - Area filter pills derived from each rental's city
    - Poster card grid (866:1000) with placeholder design
+   - "View Photos" opens a generated PDF of the listing's photos
    - WhatsApp / iMessage buttons pre-filled per address
    - Data comes live from Supabase via RentalService
    ============================================================ */
@@ -31,7 +32,6 @@ const FILTERS = [
 })
 export class Rentals implements OnInit {
   private readonly rentalService = inject(RentalService);
-
 
   protected readonly filters = FILTERS;
   protected readonly activeFilter = signal<string>('all');
@@ -156,7 +156,7 @@ export class Rentals implements OnInit {
   /** WhatsApp deep link with a pre-filled message about this address */
   waLink(r: Rental): string {
     const msg = encodeURIComponent(
-      `Hi Shalala Homes, I'm interested in the ${r.address} listing. Could you send more photos?`,
+      `Hi, I'm interested in the ${r.address} listing. When can I visit the home?`,
     );
     return `https://wa.me/${PHONE}?text=${msg}`;
   }
@@ -164,7 +164,7 @@ export class Rentals implements OnInit {
   /** SMS / iMessage link with the same pre-filled message */
   smsLink(r: Rental): string {
     const msg = encodeURIComponent(
-      `Hi Shalala Homes, I'm interested in the ${r.address} listing. Could you send more photos?`,
+      `Hi, I'm interested in the ${r.address} listing. When can I visit the home?`,
     );
     return `sms:+${PHONE}?&body=${msg}`;
   }
