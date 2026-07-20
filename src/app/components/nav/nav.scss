@@ -4,11 +4,10 @@
   left: 0;
   right: 0;
   z-index: 100;
-  transition: background 0.3s, box-shadow 0.3s;
-  background: transparent;
+  background: linear-gradient(#0A1A27DE, transparent);
 
   &--scrolled {
-    background: rgba(10, 26, 39, 0.96);
+    background: rgba(10, 26, 39, 0.87);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(10px);
   }

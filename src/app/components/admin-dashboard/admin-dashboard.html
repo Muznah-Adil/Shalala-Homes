@@ -48,6 +48,9 @@
         @if (errorMsg()) {
           <p class="dash__error">{{ errorMsg() }}</p>
         }
+        @if (successMsg()) {
+          <p class="dash__success">{{ successMsg() }}</p>
+        }
 
         <div class="dash__form-actions">
           <button type="submit" class="dash__btn dash__btn--primary" [disabled]="saving()">

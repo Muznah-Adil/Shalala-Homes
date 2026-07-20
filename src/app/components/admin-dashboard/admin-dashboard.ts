@@ -29,6 +29,7 @@ export class AdminDashboard implements OnInit {
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly errorMsg = signal<string | null>(null);
+  protected readonly successMsg = signal<string | null>(null);
 
   /** null = the form adds a new rental; a number = editing that id */
   protected readonly editingId = signal<number | null>(null);
@@ -46,7 +47,7 @@ export class AdminDashboard implements OnInit {
     city: ['', Validators.required],
     province: ['ON', Validators.required],
     postal_code: [''],
-    image_url: [''],
+    image_url: ['', Validators.required],
     image_urls_text: [''], // one photo URL per line -> image_urls array
   });
 
@@ -93,6 +94,7 @@ export class AdminDashboard implements OnInit {
     }
     this.saving.set(true);
     this.errorMsg.set(null);
+    this.successMsg.set(null);
 
     const { image_urls_text, ...value } = this.form.getRawValue();
     // split the textarea into a clean array of photo URLs
@@ -110,8 +112,10 @@ export class AdminDashboard implements OnInit {
       const id = this.editingId();
       if (id === null) {
         await this.rentalService.createRental(payload);
+        this.successMsg.set('Rental created successfully.');
       } else {
         await this.rentalService.updateRental(id, payload);
+        this.successMsg.set('Rental updated successfully.');
       }
       this.cancelEdit();
       await this.refresh();
@@ -131,6 +135,7 @@ export class AdminDashboard implements OnInit {
     this.confirmingDelete.set(null);
     try {
       await this.rentalService.deleteRental(id);
+      this.successMsg.set('Rental deleted successfully.');
       await this.refresh();
     } catch {
       this.errorMsg.set('Delete failed.');
@@ -145,10 +150,25 @@ export class AdminDashboard implements OnInit {
       .replace(/(^-|-$)/g, '') || 'unsorted';
   }
 
+  /** Max upload size per photo (matches storage plan limits) */
+  private static readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
+
   /** Shared upload path for both drag-drop and the file picker */
   private async uploadFiles(files: File[]): Promise<void> {
-    const images = files.filter(f => f.type.startsWith('image/'));
-    if (images.length === 0) return;
+    if (files.length === 0) return;
+
+    // Validate every file before uploading anything (type, then size)
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        this.uploadError.set(`"${file.name}" is not an image file.`);
+        return;
+      }
+      if (file.size > AdminDashboard.MAX_FILE_SIZE) {
+        this.uploadError.set(`"${file.name}" is larger than 5 MB — please compress it first.`);
+        return;
+      }
+    }
+    const images = files;
 
     if (!this.form.getRawValue().address.trim()) {
       this.uploadError.set('Enter the address first — photos are filed under it.');
