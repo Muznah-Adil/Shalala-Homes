@@ -107,6 +107,14 @@
     font-family: var(--font-sans);
   }
 
+  &__success {
+    grid-column: 1 / -1;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: #2e7d4f;
+    margin: 0;
+  }
+
   &__error {
     grid-column: 1 / -1;
     font-family: var(--font-sans), sans-serif;
