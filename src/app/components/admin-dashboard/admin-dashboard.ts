@@ -188,7 +188,11 @@ export class AdminDashboard implements OnInit {
     this.uploading.set(true);
     this.uploadError.set(null);
     try {
-      const urls = await this.rentalService.uploadPhotos(images, this.addressSlug());
+      // Downscale before upload: phone photos are often 8-20 MB at
+      // 4000-8000px. 2000px JPEG is indistinguishable on the site and
+      // makes pages and PDFs load many times faster.
+      const optimized = await Promise.all(images.map(f => this.downscaleImage(f)));
+      const urls = await this.rentalService.uploadPhotos(optimized, this.addressSlug());
       // append the new public URLs to the gallery textarea (one per line)
       const current = this.form.getRawValue().image_urls_text.trim();
       this.form.patchValue({
@@ -199,6 +203,41 @@ export class AdminDashboard implements OnInit {
     } finally {
       this.uploading.set(false);
     }
+  }
+
+  /** Resize an image file to max 2000px (JPEG 0.85) before upload */
+  private downscaleImage(file: File): Promise<File> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const MAX_DIM = 2000;
+        const scale = Math.min(1, MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+        // Already small enough — upload as-is
+        if (scale === 1 && file.size < 1.5 * 1024 * 1024) {
+          resolve(file);
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.naturalWidth * scale);
+        canvas.height = Math.round(img.naturalHeight * scale);
+        const ctx = canvas.getContext('2d')!;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => {
+            const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+            resolve(blob ? new File([blob], name, { type: 'image/jpeg' }) : file);
+          },
+          'image/jpeg',
+          0.85,
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
   }
 
   onDragOver(e: DragEvent): void {

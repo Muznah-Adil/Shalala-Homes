@@ -28,9 +28,10 @@ export class Footer {
   ];
 
   protected readonly serviceAreas: string[] = [
-    'West Windsor',
-    'Downtown Windsor',
+    'Windsor',
     'LaSalle',
+    'Tecumseh',
     'Amherstburg',
+    'Belle River',
   ];
 }

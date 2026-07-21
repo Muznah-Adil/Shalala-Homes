@@ -75,6 +75,9 @@ export class Rentals implements OnInit {
   /** rental id currently generating its photo PDF (disables that button) */
   protected readonly generatingPdf = signal<number | null>(null);
 
+  /** Generated PDFs, kept for the session: rental id -> blob URL */
+  private readonly pdfCache = new Map<number, string>();
+
   /**
    * Build a PDF of this rental's photos and open it in a new tab.
    * Each photo becomes one page, sized to the photo's own aspect ratio.
@@ -88,6 +91,25 @@ export class Rentals implements OnInit {
     // Open the tab NOW, inside the click gesture — popup blockers
     // reject windows opened after async work completes.
     const tab = window.open('', '_blank');
+
+    // Already generated this session? Show it instantly.
+    const cached = this.pdfCache.get(r.id);
+    if (cached) {
+      this.showPdf(tab, r, cached);
+      return;
+    }
+
+    // Immediate feedback while photos download and the PDF builds
+    if (tab) {
+      tab.document.write(
+        `<!doctype html><html><head><title>${r.address} — Photos</title>` +
+        `<style>html,body{margin:0;height:100%;background:#0a1a27;display:flex;` +
+        `align-items:center;justify-content:center;font-family:Georgia,serif;color:#fff}` +
+        `p{font-size:20px;letter-spacing:.04em}</style></head>` +
+        `<body><p>Preparing photos&hellip;</p></body></html>`,
+      );
+    }
+
     this.generatingPdf.set(r.id);
 
     try {
@@ -108,16 +130,9 @@ export class Rentals implements OnInit {
       }
 
       const blobUrl = doc!.output('bloburl').toString();
+      this.pdfCache.set(r.id, blobUrl); // reuse on any later click
       if (tab) {
-        // Render the PDF inside the tab we already own: navigating an
-        // opened window to a blob: URL is unreliable across browsers,
-        // but an <embed> written into its document always displays.
-        tab.document.write(
-          `<!doctype html><html><head><title>${r.address} — Photos</title>` +
-          `<style>html,body{margin:0;height:100%;background:#0a1a27}</style></head>` +
-          `<body><embed src="${blobUrl}" type="application/pdf" style="width:100%;height:100%"></body></html>`,
-        );
-        tab.document.close();
+        this.showPdf(tab, r, blobUrl);
       } else {
         // Popup blocked — fall back to downloading the PDF instead
         doc!.save(`${r.address.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-photos.pdf`);
@@ -129,23 +144,46 @@ export class Rentals implements OnInit {
     }
   }
 
-  /** Fetch one image and return it as a data URL plus its pixel size */
+  /** Render a generated PDF into the tab via an embedded viewer */
+  private showPdf(tab: Window | null, r: Rental, blobUrl: string): void {
+    if (!tab) return;
+    tab.document.open();
+    tab.document.write(
+      `<!doctype html><html><head><title>${r.address} — Photos</title>` +
+      `<style>html,body{margin:0;height:100%;background:#0a1a27}</style></head>` +
+      `<body><embed src="${blobUrl}" type="application/pdf" style="width:100%;height:100%"></body></html>`,
+    );
+    tab.document.close();
+  }
+
+  /** Fetch one image and return it as a PDF-ready data URL plus its size */
   private loadImage(url: string): Promise<{ dataUrl: string; format: 'JPEG' | 'PNG'; width: number; height: number }> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous'; // Supabase Storage serves CORS-enabled
       img.onload = () => {
+        // Downscale for the PDF: full-size photos (often 4000-8000px from
+        // phones) would overflow the PDF builder's string limits and
+        // produce enormous files. 2000px on the long side is crisp at A4.
+        const MAX_DIM = 2000;
+        const scale = Math.min(1, MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+        const width = Math.round(img.naturalWidth * scale);
+        const height = Math.round(img.naturalHeight * scale);
+
         const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.getContext('2d')!.drawImage(img, 0, 0);
-        // JPEG keeps the PDF small; PNG only if the source was PNG
-        const isPng = /\.png(\?|$)/i.test(url);
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.fillStyle = '#ffffff'; // JPEG has no transparency — avoid black fill
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
         resolve({
-          dataUrl: canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.92),
-          format: isPng ? 'PNG' : 'JPEG',
-          width: img.naturalWidth,
-          height: img.naturalHeight,
+          // Photos are always JPEG inside the PDF — smallest by far
+          dataUrl: canvas.toDataURL('image/jpeg', 0.85),
+          format: 'JPEG',
+          width,
+          height,
         });
       };
       img.onerror = () => reject(new Error(`Could not load ${url}`));
