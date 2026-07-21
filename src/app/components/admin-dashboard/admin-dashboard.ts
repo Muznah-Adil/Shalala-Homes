@@ -166,8 +166,6 @@ export class AdminDashboard implements OnInit {
       .replace(/(^-|-$)/g, '') || 'unsorted';
   }
 
-  /** Max upload size per photo (matches storage plan limits) */
-  private static readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
 
   /** Shared upload path for both drag-drop and the file picker */
   private async uploadFiles(files: File[]): Promise<void> {
@@ -177,10 +175,6 @@ export class AdminDashboard implements OnInit {
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
         this.uploadError.set(`"${file.name}" is not an image file.`);
-        return;
-      }
-      if (file.size > AdminDashboard.MAX_FILE_SIZE) {
-        this.uploadError.set(`"${file.name}" is larger than 5 MB — please compress it first.`);
         return;
       }
     }
