@@ -129,23 +129,34 @@ export class Rentals implements OnInit {
     }
   }
 
-  /** Fetch one image and return it as a data URL plus its pixel size */
+  /** Fetch one image and return it as a PDF-ready data URL plus its size */
   private loadImage(url: string): Promise<{ dataUrl: string; format: 'JPEG' | 'PNG'; width: number; height: number }> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous'; // Supabase Storage serves CORS-enabled
       img.onload = () => {
+        // Downscale for the PDF: full-size photos (often 4000-8000px from
+        // phones) would overflow the PDF builder's string limits and
+        // produce enormous files. 2000px on the long side is crisp at A4.
+        const MAX_DIM = 2000;
+        const scale = Math.min(1, MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+        const width = Math.round(img.naturalWidth * scale);
+        const height = Math.round(img.naturalHeight * scale);
+
         const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.getContext('2d')!.drawImage(img, 0, 0);
-        // JPEG keeps the PDF small; PNG only if the source was PNG
-        const isPng = /\.png(\?|$)/i.test(url);
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.fillStyle = '#ffffff'; // JPEG has no transparency — avoid black fill
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
         resolve({
-          dataUrl: canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.92),
-          format: isPng ? 'PNG' : 'JPEG',
-          width: img.naturalWidth,
-          height: img.naturalHeight,
+          // Photos are always JPEG inside the PDF — smallest by far
+          dataUrl: canvas.toDataURL('image/jpeg', 0.85),
+          format: 'JPEG',
+          width,
+          height,
         });
       };
       img.onerror = () => reject(new Error(`Could not load ${url}`));
