@@ -51,10 +51,16 @@
         @if (successMsg()) {
           <p class="dash__success">{{ successMsg() }}</p>
         }
+        @if (duplicateWarnedFor()) {
+          <p class="dash__warn">
+            A listing with this address already exists — check the table below.
+            If this is intentional (e.g. a second unit), click "Add Anyway".
+          </p>
+        }
 
         <div class="dash__form-actions">
           <button type="submit" class="dash__btn dash__btn--primary" [disabled]="saving()">
-            {{ saving() ? 'Saving…' : editingId() === null ? 'Add Listing' : 'Save Changes' }}
+            {{ saving() ? 'Saving…' : duplicateWarnedFor() ? 'Add Anyway' : editingId() === null ? 'Add Listing' : 'Save Changes' }}
           </button>
           @if (editingId() !== null) {
             <button type="button" class="dash__btn" (click)="cancelEdit()">Cancel</button>

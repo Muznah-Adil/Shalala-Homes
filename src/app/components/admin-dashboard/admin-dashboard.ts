@@ -36,6 +36,9 @@ export class AdminDashboard implements OnInit {
   /** id awaiting delete confirmation (two-click delete) */
   protected readonly confirmingDelete = signal<number | null>(null);
 
+  /** address the duplicate warning was shown for (two-click add-anyway) */
+  protected readonly duplicateWarnedFor = signal<string | null>(null);
+
   /** photo upload state */
   protected readonly uploading = signal(false);
   protected readonly dragOver = signal(false);
@@ -84,6 +87,7 @@ export class AdminDashboard implements OnInit {
 
   cancelEdit(): void {
     this.editingId.set(null);
+    this.duplicateWarnedFor.set(null);
     this.form.reset({ province: 'ON' });
   }
 
@@ -92,6 +96,18 @@ export class AdminDashboard implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
+    // Duplicate guard: adding a listing whose address already exists
+    // requires a second, deliberate click ("Add Anyway").
+    if (this.editingId() === null) {
+      const addr = this.form.getRawValue().address.trim().toLowerCase();
+      const exists = this.rentals().some(x => x.address.trim().toLowerCase() === addr);
+      if (exists && this.duplicateWarnedFor() !== addr) {
+        this.duplicateWarnedFor.set(addr);
+        return;
+      }
+    }
+    this.duplicateWarnedFor.set(null);
+
     this.saving.set(true);
     this.errorMsg.set(null);
     this.successMsg.set(null);
