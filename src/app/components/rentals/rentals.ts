@@ -18,8 +18,8 @@ const PHONE = '12269754568';
 /** Filter pill definitions — areaKey groups cities like the prototype */
 const FILTERS = [
   { key: 'all', label: 'All Areas', match: (_c: string) => true },
-  { key: 'west', label: 'West & South Windsor', match: (c: string) => /west|south/i.test(c) },
-  { key: 'downtown', label: 'Downtown & Walkerville', match: (c: string) => /downtown|walkerville/i.test(c) },
+  { key: 'west', label: 'South Windsor', match: (c: string) => /south/i.test(c) },
+  { key: 'downtown', label: 'West & Downtown', match: (c: string) => /downtown|west/i.test(c) },
   { key: 'lasalle', label: 'LaSalle', match: (c: string) => /lasalle/i.test(c) },
   { key: 'amherstburg', label: 'Amherstburg', match: (c: string) => /amherstburg/i.test(c) },
 ] as const;
