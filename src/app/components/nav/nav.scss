@@ -19,11 +19,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 80px;
+    height: 96px;
   }
 
   &__logo img {
-    height: 46px;
+    height: 58px;
     display: block;
   }
 
@@ -46,34 +46,35 @@
   &__links {
     list-style: none;
     display: flex;
-    gap: 38px;
+    gap: 42px;
     margin: 0;
     padding: 0;
 
     a {
       font-family: var(--font-sans), sans-serif;
-      font-weight: 400;
-      font-size: 12px;
-      letter-spacing: 0.2em;
+      font-weight: 500;
+      font-size: 15px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.9);
-      transition: color 0.2s;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+      transition: color 0.2s, opacity 0.2s;
 
       &:hover {
-        color: #fff;
+        opacity: 0.75;
       }
     }
   }
 
   &__phone {
     font-family: var(--font-sans), sans-serif;
-    font-weight: 400;
-    font-size: 13px;
+    font-weight: 500;
+    font-size: 15px;
     letter-spacing: 0.12em;
     color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
     border-radius: 999px;
-    padding: 10px 22px;
+    padding: 12px 26px;
     transition: background 0.2s, color 0.2s;
 
     &:hover {
