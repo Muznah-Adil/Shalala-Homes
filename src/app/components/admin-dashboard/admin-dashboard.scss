@@ -36,6 +36,21 @@
     &:hover { border-color: var(--ink); color: var(--ink); }
   }
 
+  &__head-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  &__optimize-note {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--muted);
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 10px 14px;
+    margin: 0 0 18px;
+  }
+
   &__panel {
     background: #fff;
     border: 1px solid var(--line);

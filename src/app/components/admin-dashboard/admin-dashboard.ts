@@ -39,6 +39,10 @@ export class AdminDashboard implements OnInit {
   /** address the duplicate warning was shown for (two-click add-anyway) */
   protected readonly duplicateWarnedFor = signal<string | null>(null);
 
+  /** one-click optimizer for previously uploaded oversized photos */
+  protected readonly optimizing = signal(false);
+  protected readonly optimizeProgress = signal<string | null>(null);
+
   /** photo upload state */
   protected readonly uploading = signal(false);
   protected readonly dragOver = signal(false);
@@ -259,6 +263,64 @@ export class AdminDashboard implements OnInit {
     const input = e.target as HTMLInputElement;
     await this.uploadFiles(Array.from(input.files ?? []));
     input.value = ''; // allow re-picking the same file
+  }
+
+  /**
+   * One-click cleanup: find every storage-hosted listing photo that is
+   * still oversized (uploaded before automatic downscaling existed),
+   * shrink it with the same downscaler, and overwrite it IN PLACE —
+   * same path, same URL, so no listing data changes at all.
+   */
+  async optimizeAllPhotos(): Promise<void> {
+    if (this.optimizing()) return;
+    this.optimizing.set(true);
+    this.optimizeProgress.set('Scanning listings…');
+
+    const MARKER = '/storage/v1/object/public/posters/';
+    const ALREADY_SMALL = 600 * 1024; // skip photos under ~600 KB
+
+    try {
+      const rentals = await this.rentalService.getRentals();
+      const targets: { path: string; url: string }[] = [];
+      for (const r of rentals) {
+        for (const url of r.image_urls ?? []) {
+          const i = url.indexOf(MARKER);
+          if (i >= 0) {
+            targets.push({ path: decodeURIComponent(url.slice(i + MARKER.length)), url });
+          }
+        }
+      }
+
+      let done = 0;
+      let shrunk = 0;
+      for (const t of targets) {
+        done++;
+        this.optimizeProgress.set(`Checking photo ${done} of ${targets.length}…`);
+        try {
+          const blob = await (await fetch(t.url)).blob();
+          if (blob.size < ALREADY_SMALL) continue;
+
+          this.optimizeProgress.set(`Optimizing photo ${done} of ${targets.length}…`);
+          const original = new File([blob], t.path.split('/').pop() ?? 'photo.jpg', { type: blob.type });
+          const optimized = await this.downscaleImage(original);
+          if (optimized.size >= blob.size) continue; // no gain — leave it
+
+          await this.rentalService.replacePhoto(t.path, optimized);
+          shrunk++;
+        } catch {
+          // one bad photo shouldn't stop the run — skip and continue
+        }
+      }
+      this.optimizeProgress.set(
+        shrunk > 0
+          ? `Done — ${shrunk} photo${shrunk === 1 ? '' : 's'} optimized. Visitors may see cached versions for up to an hour.`
+          : 'Done — all photos were already optimized.',
+      );
+    } catch {
+      this.optimizeProgress.set('Could not scan listings — try again.');
+    } finally {
+      this.optimizing.set(false);
+    }
   }
 
   async signOut(): Promise<void> {

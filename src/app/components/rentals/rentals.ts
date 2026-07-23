@@ -1,7 +1,6 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { RentalService } from './services/rental.service';
 import { Rental } from './services/rental.model';
-import { jsPDF } from 'jspdf';
 
 /* ============================================================
    RENTALS — public listings page (matches the prototype)
@@ -91,11 +90,15 @@ export class Rentals implements OnInit {
     this.generatingPdf.set(r.id);
 
     try {
+      // jsPDF (and its heavy dependencies) load only now, on first use —
+      // keeping them out of the rentals page bundle entirely.
+      const { jsPDF } = await import('jspdf');
+
       // Load every photo as a data URL with its natural dimensions
       const images = await Promise.all(urls.map(u => this.loadImage(u)));
 
-      const PAGE_W = 210; // mm — A4 width; each page's height follows the photo
-      let doc: jsPDF | null = null;
+      const PAGE_W = 210; // m — A4 width; each page's height follows the photo
+      let doc: InstanceType<typeof jsPDF> | null = null;
 
       for (const img of images) {
         const pageH = (img.height / img.width) * PAGE_W;

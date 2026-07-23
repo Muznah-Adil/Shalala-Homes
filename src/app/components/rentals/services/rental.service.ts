@@ -105,6 +105,23 @@ export class RentalService {
   }
 
   /**
+   * Replace an existing storage photo in place (same path, same URL)
+   * @param path object path inside the posters bucket
+   * @param file the optimized replacement
+   */
+  async replacePhoto(path: string, file: File | Blob): Promise<void> {
+    const { error } = await this.supabase.storage.from('posters').upload(path, file, {
+      cacheControl: '3600',
+      contentType: 'image/jpeg',
+      upsert: true,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
    * Upload several rental images and return their public URLs
    * @param files
    * @param folder e.g. the listing's address slug ("326-elm-ave")

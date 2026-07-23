@@ -6,8 +6,17 @@
         <span class="eyebrow">Shalala Homes</span>
         <h1 class="dash__title">Manage Rentals</h1>
       </div>
-      <button type="button" class="dash__signout" (click)="signOut()">Sign Out</button>
+      <div class="dash__head-actions">
+        <button type="button" class="dash__signout" (click)="optimizeAllPhotos()" [disabled]="optimizing()">
+          {{ optimizing() ? 'Optimizing…' : 'Optimize All Photos' }}
+        </button>
+        <button type="button" class="dash__signout" (click)="signOut()">Sign Out</button>
+      </div>
     </header>
+
+    @if (optimizeProgress()) {
+      <p class="dash__optimize-note">{{ optimizeProgress() }}</p>
+    }
 
     <!-- ============ Add / Edit form ============ -->
     <div class="dash__panel">
