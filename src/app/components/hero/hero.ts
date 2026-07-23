@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 /* HERO — full-screen video section
    - Background video with dark gradient overlay
@@ -10,7 +11,7 @@ import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-hero',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './hero.html',
   styleUrl: './hero.scss',
 })

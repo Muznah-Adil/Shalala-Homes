@@ -34,7 +34,7 @@
       <div class="footer__heading">Explore</div>
       <ul class="footer__links">
         @for (link of exploreLinks; track link.href) {
-          <li><a [href]="link.href">{{ link.label }}</a></li>
+          <li><a [routerLink]="link.href">{{ link.label }}</a></li>
         }
         <li><a routerLink="/admin" class="footer__admin-link">Staff Login</a></li>
       </ul>

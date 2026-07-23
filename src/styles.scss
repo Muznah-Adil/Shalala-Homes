@@ -109,3 +109,8 @@ a {
   color: var(--ink);
   border-color: #fff;
 }
+
+/* Routed section scrolling: keep headings clear of the fixed nav */
+section[id] {
+  scroll-margin-top: 84px;
+}

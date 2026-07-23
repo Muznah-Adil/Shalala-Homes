@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import {RouterLink} from '@angular/router';
+import {Component } from '@angular/core';
 
 /* ABOUT — two-column section
    - Left: eyebrow, heading, copy, stats, CTA pill
@@ -11,7 +12,7 @@ interface Stat {
 
 @Component({
   selector: 'app-about',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './about.html',
   styleUrl: './about.scss',
 })

@@ -10,14 +10,14 @@
     </button>
 
     <!-- Logo -->
-    <a href="#home" class="nav__logo" aria-label="Shalala Homes — home">
+    <a routerLink="/" class="nav__logo" aria-label="Shalala Homes — home">
       <img src="logo-white.png" alt="Shalala Homes" />
     </a>
 
     <!-- Desktop links (hidden on compact) -->
     <ul class="nav__links">
       @for (link of links; track link.href) {
-        <li><a [href]="link.href">{{ link.label }}</a></li>
+        <li><a [routerLink]="link.href">{{ link.label }}</a></li>
       }
     </ul>
 
@@ -41,13 +41,13 @@
   <div class="nav-panel__phone">{{ phoneDisplay }}</div>
 
   <div class="nav-panel__actions">
-    <a href="/rentals" (click)="closeMenu()">Explore Rentals</a>
+    <a routerLink="/rentals" (click)="closeMenu()">Explore Rentals</a>
     <a [href]="phoneHref" (click)="closeMenu()">Call the Office</a>
   </div>
 
   <ul class="nav-panel__links">
     @for (link of links; track link.href) {
-      <li><a [href]="link.href" (click)="closeMenu()">{{ link.label }}</a></li>
+      <li><a [routerLink]="link.href" (click)="closeMenu()">{{ link.label }}</a></li>
     }
   </ul>
 </aside>

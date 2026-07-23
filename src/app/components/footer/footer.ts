@@ -19,12 +19,12 @@ export class Footer {
   protected readonly email = 'shalalahomes@gmail.com';
 
   protected readonly exploreLinks: FooterLink[] = [
-    { label: 'Home', href: '#home' },
+    { label: 'Home', href: '/' },
     { label: 'Rentals', href: '/rentals' },
-    { label: 'Services', href: '#services' },
-    { label: 'For Owners', href: '#owners' },
-    { label: 'About Us', href: '#about' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'Services', href: '/services' },
+    { label: 'For Owners', href: '/for-owners' },
+    { label: 'About Us', href: '/about' },
+    { label: 'Contact', href: '/contact' },
   ];
 
   protected readonly serviceAreas: string[] = [

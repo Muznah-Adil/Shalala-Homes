@@ -1,4 +1,5 @@
 import {Component, HostListener, signal,} from '@angular/core';
+import {RouterLink} from '@angular/router';
 
 interface NavLink {
   label: string;
@@ -7,7 +8,7 @@ interface NavLink {
 
 @Component({
   selector: 'app-nav',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './nav.html',
   styleUrl: './nav.scss',
 })
@@ -24,12 +25,12 @@ export class Nav {
   protected readonly phoneHref = 'tel:+12269754568';
 
   protected readonly links: NavLink[] = [
-    { label: 'Home', href: '#home' },
-    { label: 'Services', href: '#services' },
+    { label: 'Home', href: '/' },
+    { label: 'Services', href: '/services' },
     { label: 'Rentals', href: '/rentals' },
-    { label: 'For Owners', href: '#owners' },
-    { label: 'About', href: '#about' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'For Owners', href: '/for-owners' },
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
   ];
 
   @HostListener('window:scroll')
