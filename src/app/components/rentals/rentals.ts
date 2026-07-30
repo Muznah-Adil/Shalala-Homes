@@ -111,19 +111,30 @@ export class Rentals implements OnInit {
       }
 
       const blobUrl = doc!.output('bloburl').toString();
-      if (tab) {
-        // Render the PDF inside the tab we already own: navigating an
-        // opened window to a blob: URL is unreliable across browsers,
-        // but an <embed> written into its document always displays.
+      const fileName = `${r.address.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-photos.pdf`;
+      const inlineViewer = (navigator as { pdfViewerEnabled?: boolean }).pdfViewerEnabled;
+
+      if (inlineViewer === false || !tab) {
+        // Android Chrome (and most mobile browsers) have NO built-in PDF
+        // viewer — an embedded PDF shows a blank page. Download instead:
+        // it opens in the phone's PDF app. Also covers blocked popups.
+        tab?.close();
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.click();
+      } else if (inlineViewer === true) {
+        // Desktop Chrome / Edge / Firefox: embedded viewer in our tab.
         tab.document.write(
-          `<!doctype html><html><head><title>${r.address} — Photos</title>` +
+          `<!doctype html><html lang="en"><head><title>${r.address} — Photos</title>` +
           `<style>html,body{margin:0;height:100%;background:#0a1a27}</style></head>` +
           `<body><embed src="${blobUrl}" type="application/pdf" style="width:100%;height:100%"></body></html>`,
         );
         tab.document.close();
       } else {
-        // Popup blocked — fall back to downloading the PDF instead
-        doc!.save(`${r.address.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-photos.pdf`);
+        // Safari / iOS (doesn't report the flag): navigate the tab so the
+        // browser's own native PDF viewer takes over.
+        tab.location.href = blobUrl;
       }
     } catch {
       tab?.close(); // don't leave a blank tab behind on failure
