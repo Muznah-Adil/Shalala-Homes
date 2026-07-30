@@ -45,3 +45,5 @@ Thumbs.db
 
 # background-video
 *.mov
+.vercel
+.env*

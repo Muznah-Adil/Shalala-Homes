@@ -116,9 +116,29 @@ export class Rentals implements OnInit {
 
       if (inlineViewer === false || !tab) {
         // Android Chrome (and most mobile browsers) have NO built-in PDF
-        // viewer — an embedded PDF shows a blank page. Download instead:
-        // it opens in the phone's PDF app. Also covers blocked popups.
+        // viewer — an embedded PDF shows a blank page. Also covers popups.
         tab?.close();
+
+        // In-app browsers (the Google app, Facebook, Instagram, WebViews)
+        // silently ignore download links too — the Android share sheet is
+        // the one thing they support: the user picks "open" or "save".
+        const inApp = /(; wv\)|GSA\/|FBAN|FBAV|Instagram|Line\/)/i.test(navigator.userAgent);
+        const nav = navigator as Navigator & {
+          canShare?: (data: { files: File[] }) => boolean;
+          share?: (data: { files: File[]; title?: string }) => Promise<void>;
+        };
+        if (inApp) {
+          const pdfFile = new File([doc!.output('blob')], fileName, { type: 'application/pdf' });
+          if (nav.canShare?.({ files: [pdfFile] })) {
+            try {
+              await nav.share!({ files: [pdfFile], title: `${r.address} — Photos` });
+              return;
+            } catch {
+              // user closed the share sheet or sharing failed — try download
+            }
+          }
+        }
+
         const link = document.createElement('a');
         link.href = blobUrl;
         link.download = fileName;
