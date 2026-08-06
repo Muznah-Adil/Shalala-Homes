@@ -93,12 +93,24 @@
           </div>
 
           <!-- ============ Location map ============ -->
-          @if (coords()) {
-            <div class="detail__map-wrap">
-              <h2 class="detail__map-title">Location</h2>
-              <div class="detail__map" #mapEl></div>
+          <div class="detail__map-wrap">
+            <h2 class="detail__map-title">Location</h2>
+            <div class="detail__map">
+              <iframe
+                [src]="mapEmbedUrl()"
+                title="Map of the listing's location"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen>
+              </iframe>
+              <a class="detail__map-link"
+                 [href]="mapsLink()"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 aria-label="Open this location in Google Maps"></a>
             </div>
-          }
+            <p class="detail__map-hint">Click the map to open in Google Maps</p>
+          </div>
         </aside>
 
       </div>
