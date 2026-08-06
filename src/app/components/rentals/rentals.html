@@ -38,16 +38,14 @@
       @for (r of visible(); track r.id) {
         <article class="poster">
           <div class="poster__img">
-            @if (photos(r).length > 0) {
-              <button type="button" class="poster__view"
-                      (click)="viewPhotos(r)"
-                      [disabled]="generatingPdf() !== null"
-                      [attr.aria-label]="'View photos of ' + r.address + ' (PDF)'">
-                {{ generatingPdf() === r.id ? 'Preparing…' : 'View Photos' }}
-              </button>
-            }
+            <a [routerLink]="['/rentals', r.id]" class="poster__view"
+               [attr.aria-label]="'View photos of ' + r.address">
+              View Photos
+            </a>
             @if (cover(r)) {
-              <img [src]="cover(r)" [alt]="r.address + ' rental poster'" loading="lazy" />
+              <a [routerLink]="['/rentals', r.id]" class="poster__img-link" [attr.aria-label]="'View details of ' + r.address">
+                <img [src]="cover(r)" [alt]="r.address + ' rental poster'" loading="lazy" />
+              </a>
             } @else {
               <svg viewBox="0 0 24 24" fill="none" stroke="#9FB4C6" stroke-width="1.2" class="poster__ico">
                 <path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /><path d="M9 20v-6h6v6" />
@@ -57,10 +55,10 @@
             }
           </div>
 
-          <div class="poster__meta">
+          <a [routerLink]="['/rentals', r.id]" class="poster__meta">
             <span class="poster__title">{{ r.title }}</span>
             <span class="poster__area">{{ r.address }} · {{ r.city }}</span>
-          </div>
+          </a>
 
           <div class="poster__actions">
             <a [href]="waLink(r)" target="_blank" rel="noopener noreferrer" class="poster__btn poster__btn--wa">

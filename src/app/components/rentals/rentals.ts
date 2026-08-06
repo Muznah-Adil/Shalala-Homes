@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { RentalService } from './services/rental.service';
 import { Rental } from './services/rental.model';
 
@@ -25,7 +26,7 @@ const FILTERS = [
 
 @Component({
   selector: 'app-rentals',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './rentals.html',
   styleUrl: './rentals.scss',
 })
@@ -63,128 +64,6 @@ export class Rentals implements OnInit {
   cover(r: Rental): string | null {
     if (r.image_urls && r.image_urls.length > 0) return r.image_urls[0];
     return r.image_url;
-  }
-
-  /** All photos for a listing: the gallery array, falling back to the cover */
-  photos(r: Rental): string[] {
-    if (r.image_urls && r.image_urls.length > 0) return r.image_urls;
-    return r.image_url ? [r.image_url] : [];
-  }
-
-  /** rental id currently generating its photo PDF (disables that button) */
-  protected readonly generatingPdf = signal<number | null>(null);
-
-  /**
-   * Build a PDF of this rental's photos and open it in a new tab.
-   * Each photo becomes one page, sized to the photo's own aspect ratio.
-   */
-  async viewPhotos(r: Rental): Promise<void> {
-    if (this.generatingPdf() !== null) return;
-
-    const urls = this.photos(r);
-    if (urls.length === 0) return;
-
-    // Open the tab NOW, inside the click gesture — popup blockers
-    // reject windows opened after async work completes.
-    const tab = window.open('', '_blank');
-    this.generatingPdf.set(r.id);
-
-    try {
-      // jsPDF (and its heavy dependencies) load only now, on first use —
-      // keeping them out of the rentals page bundle entirely.
-      const { jsPDF } = await import('jspdf');
-
-      // Load every photo as a data URL with its natural dimensions
-      const images = await Promise.all(urls.map(u => this.loadImage(u)));
-
-      const PAGE_W = 210; // m — A4 width; each page's height follows the photo
-      let doc: InstanceType<typeof jsPDF> | null = null;
-
-      for (const img of images) {
-        const pageH = (img.height / img.width) * PAGE_W;
-        if (doc === null) {
-          doc = new jsPDF({ unit: 'mm', format: [PAGE_W, pageH] });
-        } else {
-          doc.addPage([PAGE_W, pageH]);
-        }
-        doc.addImage(img.dataUrl, img.format, 0, 0, PAGE_W, pageH);
-      }
-
-      const blobUrl = doc!.output('bloburl').toString();
-      const fileName = `${r.address.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-photos.pdf`;
-      const inlineViewer = (navigator as { pdfViewerEnabled?: boolean }).pdfViewerEnabled;
-
-      if (inlineViewer === false || !tab) {
-        // Android Chrome (and most mobile browsers) have NO built-in PDF
-        // viewer — an embedded PDF shows a blank page. Also covers popups.
-        tab?.close();
-
-        // In-app browsers (the Google app, Facebook, Instagram, WebViews)
-        // silently ignore download links too — the Android share sheet is
-        // the one thing they support: the user picks "open" or "save".
-        const inApp = /(; wv\)|GSA\/|FBAN|FBAV|Instagram|Line\/)/i.test(navigator.userAgent);
-        const nav = navigator as Navigator & {
-          canShare?: (data: { files: File[] }) => boolean;
-          share?: (data: { files: File[]; title?: string }) => Promise<void>;
-        };
-        if (inApp) {
-          const pdfFile = new File([doc!.output('blob')], fileName, { type: 'application/pdf' });
-          if (nav.canShare?.({ files: [pdfFile] })) {
-            try {
-              await nav.share!({ files: [pdfFile], title: `${r.address} — Photos` });
-              return;
-            } catch {
-              // user closed the share sheet or sharing failed — try download
-            }
-          }
-        }
-
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = fileName;
-        link.click();
-      } else if (inlineViewer === true) {
-        // Desktop Chrome / Edge / Firefox: embedded viewer in our tab.
-        tab.document.write(
-          `<!doctype html><html lang="en"><head><title>${r.address} — Photos</title>` +
-          `<style>html,body{margin:0;height:100%;background:#0a1a27}</style></head>` +
-          `<body><embed src="${blobUrl}" type="application/pdf" style="width:100%;height:100%"></body></html>`,
-        );
-        tab.document.close();
-      } else {
-        // Safari / iOS (doesn't report the flag): navigate the tab so the
-        // browser's own native PDF viewer takes over.
-        tab.location.href = blobUrl;
-      }
-    } catch {
-      tab?.close(); // don't leave a blank tab behind on failure
-    } finally {
-      this.generatingPdf.set(null);
-    }
-  }
-
-  /** Fetch one image and return it as a data URL plus its pixel size */
-  private loadImage(url: string): Promise<{ dataUrl: string; format: 'JPEG' | 'PNG'; width: number; height: number }> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous'; // Supabase Storage serves CORS-enabled
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.getContext('2d')!.drawImage(img, 0, 0);
-        // JPEG keeps the PDF small; PNG only if the source was PNG
-        const isPng = /\.png(\?|$)/i.test(url);
-        resolve({
-          dataUrl: canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.92),
-          format: isPng ? 'PNG' : 'JPEG',
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-        });
-      };
-      img.onerror = () => reject(new Error(`Could not load ${url}`));
-      img.src = url;
-    });
   }
 
   /** WhatsApp deep link with a pre-filled message about this address */

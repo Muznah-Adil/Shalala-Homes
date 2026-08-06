@@ -105,6 +105,24 @@ export class RentalService {
   }
 
   /**
+   * Get one rental by id (detail page). Returns null when not found.
+   * @param id
+   */
+  async getRentalById(id: number): Promise<Rental | null> {
+    const { data, error } = await this.supabase
+      .from('rentals')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data as Rental | null;
+  }
+
+  /**
    * Replace an existing storage photo in place (same path, same URL)
    * @param path object path inside the posters bucket
    * @param file the optimized replacement

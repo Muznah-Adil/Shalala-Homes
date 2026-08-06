@@ -51,7 +51,24 @@
 }
 
 .fposter {
+  padding: 14px;
+  margin: -14px;
+  border: 1px solid transparent;
+  transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    background-color: var(--soft);
+    border-color: var(--line);
+    transform: translateY(-3px);
+  }
+
   &__img {
+    display: flex;
+    cursor: pointer;
+
+    img { transition: transform 0.45s ease; }
+    &:hover img { transform: scale(1.03); }
+
     aspect-ratio: 866 / 1000;
     background: linear-gradient(160deg, #1b2c3a, #0a1620);
     position: relative;

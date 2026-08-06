@@ -14,13 +14,13 @@
       <div class="featured__grid">
         @for (r of featured(); track r.id) {
           <article class="fposter">
-            <div class="fposter__img">
+            <a [routerLink]="['/rentals', r.id]" class="fposter__img" [attr.aria-label]="'View details of ' + r.address">
               @if (cover(r)) {
                 <img [src]="cover(r)" [alt]="r.address + ' rental poster'" loading="lazy" />
               } @else {
                 <span class="fposter__addr">{{ r.address }}</span>
               }
-            </div>
+            </a>
             <div class="fposter__actions">
               <a [href]="waLink(r)" target="_blank" rel="noopener noreferrer" class="fposter__btn fposter__btn--wa">
                 <svg viewBox="0 0 24 24" class="fposter__btn-ico" fill="currentColor">
