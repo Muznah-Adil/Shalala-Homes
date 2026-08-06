@@ -92,6 +92,20 @@
     font-size: 22px;
   }
 
+  &__specs {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--ink);
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: baseline;
+
+    strong { font-weight: 500; }
+    span { color: var(--muted); }
+  }
+
   &__actions {
     display: grid;
     grid-template-columns: 1fr 1fr;

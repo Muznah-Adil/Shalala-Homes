@@ -4,7 +4,10 @@ export interface Rental {
   address: string;
   city: string;
   province: string;
-  postal_code: string;
+  postal_code?: string;
+  price: string;
+  beds: string;
+  baths: string;
   image_url: string | null;
   image_urls: string[];
   created_at: string;

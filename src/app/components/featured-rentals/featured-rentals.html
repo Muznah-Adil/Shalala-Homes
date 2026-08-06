@@ -21,6 +21,13 @@
                 <span class="fposter__addr">{{ r.address }}</span>
               }
             </a>
+            @if (r.price || r.beds || r.baths) {
+              <div class="fposter__specs">
+                @if (r.price) { <strong>{{ r.price }}</strong> }
+                @if (r.beds) { <span>· {{ r.beds }} Bed</span> }
+                @if (r.baths) { <span>· {{ r.baths }} Bath</span> }
+              </div>
+            }
             <div class="fposter__actions">
               <a [href]="waLink(r)" target="_blank" rel="noopener noreferrer" class="fposter__btn fposter__btn--wa">
                 <svg viewBox="0 0 24 24" class="fposter__btn-ico" fill="currentColor">

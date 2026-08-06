@@ -29,7 +29,9 @@
         <input class="dash__input" type="text" placeholder="Address (e.g. 326 Elm Ave)" formControlName="address" />
         <input class="dash__input" type="text" placeholder="Area / City (e.g. West Windsor)" formControlName="city" />
         <input class="dash__input" type="text" placeholder="Province" formControlName="province" />
-        <input class="dash__input" type="text" placeholder="Postal code (optional)" formControlName="postal_code" />
+        <input class="dash__input" type="text" placeholder="Price (e.g. $1,650 + utilities)" formControlName="price" />
+        <input class="dash__input" type="text" placeholder="Bedrooms (e.g. 2)" formControlName="beds" />
+        <input class="dash__input" type="text" placeholder="Bathrooms (e.g. 1.5)" formControlName="baths" />
         <input class="dash__input" type="text" placeholder="Cover image URL (optional — defaults to first gallery photo)" formControlName="image_url" />
         <!-- Drag-and-drop photo upload -> Supabase Storage -->
         <div class="dash__dropzone"
@@ -87,7 +89,7 @@
       <table class="dash__table">
         <thead>
         <tr>
-          <th>ID</th><th>Title</th><th>Address</th><th>Area</th><th>Image</th><th></th>
+          <th>ID</th><th>Title</th><th>Address</th><th>Area</th><th>Price</th><th>Image</th><th></th>
         </tr>
         </thead>
         <tbody>
@@ -97,6 +99,7 @@
               <td>{{ r.title }}</td>
               <td>{{ r.address }}</td>
               <td>{{ r.city }}</td>
+              <td>{{ r.price }}</td>
               <td class="dash__img-cell">{{ r.image_url ? '✓' : '—' }}</td>
               <td class="dash__row-actions">
                 <button type="button" class="dash__btn dash__btn--small" (click)="startEdit(r)">Edit</button>

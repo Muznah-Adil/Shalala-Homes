@@ -53,7 +53,9 @@ export class AdminDashboard implements OnInit {
     address: ['', Validators.required],
     city: ['', Validators.required],
     province: ['ON', Validators.required],
-    postal_code: [''],
+    price: ['', Validators.required],
+    beds: ['', Validators.required],
+    baths: ['', Validators.required],
     image_url: [''],
     image_urls_text: [''], // one photo URL per line -> image_urls array
   });
@@ -82,7 +84,9 @@ export class AdminDashboard implements OnInit {
       address: r.address,
       city: r.city,
       province: r.province,
-      postal_code: r.postal_code,
+      price: r.price ?? '',
+      beds: r.beds ?? '',
+      baths: r.baths ?? '',
       image_url: r.image_url ?? '',
       image_urls_text: (r.image_urls ?? []).join('\n'),
     });

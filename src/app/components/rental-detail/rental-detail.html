@@ -49,10 +49,22 @@
               <dt>Province</dt>
               <dd>{{ rental()!.province }}</dd>
             </div>
-            @if (rental()!.postal_code) {
+            @if (rental()!.price) {
               <div class="detail__fact">
-                <dt>Postal Code</dt>
-                <dd>{{ rental()!.postal_code }}</dd>
+                <dt>Price</dt>
+                <dd>{{ rental()!.price }}</dd>
+              </div>
+            }
+            @if (rental()!.beds) {
+              <div class="detail__fact">
+                <dt>Bedrooms</dt>
+                <dd>{{ rental()!.beds }}</dd>
+              </div>
+            }
+            @if (rental()!.baths) {
+              <div class="detail__fact">
+                <dt>Bathrooms</dt>
+                <dd>{{ rental()!.baths }}</dd>
               </div>
             }
             <div class="detail__fact">
@@ -62,8 +74,7 @@
           </dl>
 
           <p class="detail__note">
-            Pricing and availability are shown on the listing poster.
-            Message us and we'll get right back to you.
+            Message us about this home and we'll get right back to you.
           </p>
 
           <div class="detail__actions">

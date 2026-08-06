@@ -58,6 +58,13 @@
           <a [routerLink]="['/rentals', r.id]" class="poster__meta">
             <span class="poster__title">{{ r.title }}</span>
             <span class="poster__area">{{ r.address }} · {{ r.city }}</span>
+            @if (r.price || r.beds || r.baths) {
+              <span class="poster__specs">
+                @if (r.price) { <strong>{{ r.price }}</strong> }
+                @if (r.beds) { <span>· {{ r.beds }} Bed</span> }
+                @if (r.baths) { <span>· {{ r.baths }} Bath</span> }
+              </span>
+            }
           </a>
 
           <div class="poster__actions">
