@@ -48,11 +48,14 @@
     aspect-ratio: 4 / 3;
     background: linear-gradient(160deg, #1b2c3a, #0a1620);
     overflow: hidden;
+    display: flex;                 /* ← add */
+    align-items: center;           /* ← add */
+    justify-content: center;       /* ← add */
 
     img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;         /* ← was: cover */
     }
   }
 
