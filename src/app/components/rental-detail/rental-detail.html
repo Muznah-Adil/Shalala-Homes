@@ -91,6 +91,14 @@
               iMessage
             </a>
           </div>
+
+          <!-- ============ Location map ============ -->
+          @if (coords()) {
+            <div class="detail__map-wrap">
+              <h2 class="detail__map-title">Location</h2>
+              <div class="detail__map" #mapEl></div>
+            </div>
+          }
         </aside>
 
       </div>
