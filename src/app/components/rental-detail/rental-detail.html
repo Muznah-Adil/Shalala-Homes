@@ -32,6 +32,17 @@
               }
             </div>
           }
+
+          <!-- ============ Video tour ============ -->
+          @if (videos().length > 0) {
+            <div class="detail__videos">
+              <h2 class="detail__videos-title">Video Tour</h2>
+              @for (video of videos(); track video) {
+                <video class="detail__video" controls preload="metadata" playsinline
+                       [src]="video"></video>
+              }
+            </div>
+          }
         </div>
 
         <!-- ============ Details ============ -->

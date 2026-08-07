@@ -155,6 +155,48 @@ export class RentalService {
   }
 
   /**
+   * Upload one rental video to Supabase Storage and return its public URL.
+   * Videos are uploaded as-is (no browser-side compression is possible),
+   * so callers should enforce a size cap before calling this.
+   * @param file
+   * @param folder e.g. the listing's address slug ("326-elm-ave")
+   */
+  async uploadRentalVideo(file: File, folder: string): Promise<string> {
+    const extension = file.name.split('.').pop()?.toLowerCase() ?? 'mp4';
+
+    const filePath = `${folder}/videos/${crypto.randomUUID()}.${extension}`;
+
+    const { error } = await this.supabase.storage.from('posters').upload(filePath, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data } = this.supabase.storage.from('posters').getPublicUrl(filePath);
+
+    return data.publicUrl;
+  }
+
+  /**
+   * Upload several rental videos and return their public URLs
+   * @param files
+   * @param folder e.g. the listing's address slug ("326-elm-ave")
+   */
+  async uploadVideos(files: File[], folder: string): Promise<string[]> {
+    const urls: string[] = [];
+
+    for (const file of files) {
+      urls.push(await this.uploadRentalVideo(file, folder));
+    }
+
+    return urls;
+  }
+
+  /**
    * Delete rental and write to rentals table
    * @param id
    */

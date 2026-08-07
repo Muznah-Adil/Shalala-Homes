@@ -40,12 +40,12 @@
              (dragleave)="onDragLeave()"
              (drop)="onDrop($event)">
           @if (uploading()) {
-            <span>Uploading photos…</span>
+            <span>Uploading files…</span>
           } @else {
-            <span>Drop house photos here, or
-              <label class="dash__pick">browse<input type="file" accept="image/*" multiple hidden (change)="onFilePick($event)" /></label>
+            <span>Drop house photos or videos here, or
+              <label class="dash__pick">browse<input type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple hidden (change)="onFilePick($event)" /></label>
             </span>
-            <small>Photos upload automatically and are added to the gallery below.</small>
+            <small>Photos and videos upload automatically and are added to the lists below. Videos must be under 50 MB.</small>
           }
         </div>
         @if (uploadError()) {
@@ -55,6 +55,10 @@
         <textarea class="dash__input dash__textarea" rows="4"
                   placeholder="Gallery photo URLs — one per line (auto-filled by uploads above; first photo = cover)"
                   formControlName="image_urls_text"></textarea>
+
+        <textarea class="dash__input dash__textarea" rows="2"
+                  placeholder="Video URLs — one per line (auto-filled by uploads above)"
+                  formControlName="video_urls_text"></textarea>
 
         @if (errorMsg()) {
           <p class="dash__error">{{ errorMsg() }}</p>

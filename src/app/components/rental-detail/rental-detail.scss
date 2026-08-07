@@ -48,9 +48,9 @@
     aspect-ratio: 4 / 3;
     background: linear-gradient(160deg, #1b2c3a, #0a1620);
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex;                 /* ← add */
+    align-items: center;           /* ← add */
+    justify-content: center;       /* ← add */
 
     img {
       width: 100%;
@@ -90,6 +90,28 @@
       opacity: 1;
       border-color: var(--ink);
     }
+  }
+
+  /* ---------- video tour ---------- */
+  &__videos {
+    margin-top: 34px;
+  }
+
+  &__videos-title {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+
+  &__video {
+    width: 100%;
+    display: block;
+    background: #0a1620;
+    border: 1px solid var(--line);
+
+    & + & { margin-top: 12px; }
   }
 
   /* ---------- info ---------- */

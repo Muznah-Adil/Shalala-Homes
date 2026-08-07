@@ -10,6 +10,7 @@ export interface Rental {
   baths: string;
   image_url: string | null;
   image_urls: string[];
+  video_urls: string[];
   created_at: string;
   updated_at: string;
 }

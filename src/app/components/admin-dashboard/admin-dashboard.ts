@@ -58,7 +58,11 @@ export class AdminDashboard implements OnInit {
     baths: ['', Validators.required],
     image_url: [''],
     image_urls_text: [''], // one photo URL per line -> image_urls array
+    video_urls_text: [''], // one video URL per line -> video_urls array
   });
+
+  /** Supabase free tier caps uploads at 50 MB per file */
+  private static readonly MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
   async ngOnInit(): Promise<void> {
     await this.refresh();
@@ -89,6 +93,7 @@ export class AdminDashboard implements OnInit {
       baths: r.baths ?? '',
       image_url: r.image_url ?? '',
       image_urls_text: (r.image_urls ?? []).join('\n'),
+      video_urls_text: (r.video_urls ?? []).join('\n'),
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -120,16 +125,17 @@ export class AdminDashboard implements OnInit {
     this.errorMsg.set(null);
     this.successMsg.set(null);
 
-    const { image_urls_text, ...value } = this.form.getRawValue();
-    // split the textarea into a clean array of photo URLs
-    const image_urls = image_urls_text
-      .split('\n')
-      .map(u => u.trim())
-      .filter(u => u.length > 0);
+    const { image_urls_text, video_urls_text, ...value } = this.form.getRawValue();
+    // split the textareas into clean arrays of URLs
+    const toList = (text: string) =>
+      text.split('\n').map(u => u.trim()).filter(u => u.length > 0);
+    const image_urls = toList(image_urls_text);
+    const video_urls = toList(video_urls_text);
     const payload = {
       ...value,
       image_url: value.image_url || image_urls[0] || null, // cover = first photo
       image_urls,
+      video_urls,
     };
 
     try {
@@ -180,32 +186,56 @@ export class AdminDashboard implements OnInit {
     if (files.length === 0) return;
 
     // Validate every file before uploading anything (type, then size)
+    const images: File[] = [];
+    const videos: File[] = [];
     for (const file of files) {
-      if (!file.type.startsWith('image/')) {
-        this.uploadError.set(`"${file.name}" is not an image file.`);
+      if (file.type.startsWith('image/')) {
+        images.push(file);
+      } else if (file.type.startsWith('video/')) {
+        if (file.size > AdminDashboard.MAX_VIDEO_BYTES) {
+          const mb = Math.round(file.size / (1024 * 1024));
+          this.uploadError.set(
+            `"${file.name}" is ${mb} MB — videos must be under 50 MB. ` +
+            `Trim it or export it at 720p and try again.`,
+          );
+          return;
+        }
+        videos.push(file);
+      } else {
+        this.uploadError.set(`"${file.name}" is not an image or video file.`);
         return;
       }
     }
-    const images = files;
 
     if (!this.form.getRawValue().address.trim()) {
-      this.uploadError.set('Enter the address first — photos are filed under it.');
+      this.uploadError.set('Enter the address first — files are filed under it.');
       return;
     }
 
     this.uploading.set(true);
     this.uploadError.set(null);
     try {
-      // Downscale before upload: phone photos are often 8-20 MB at
-      // 4000-8000px. 2000px JPEG is indistinguishable on the site and
-      // makes pages and PDFs load many times faster.
-      const optimized = await Promise.all(images.map(f => this.downscaleImage(f)));
-      const urls = await this.rentalService.uploadPhotos(optimized, this.addressSlug());
-      // append the new public URLs to the gallery textarea (one per line)
-      const current = this.form.getRawValue().image_urls_text.trim();
-      this.form.patchValue({
-        image_urls_text: current ? current + '\n' + urls.join('\n') : urls.join('\n'),
-      });
+      /** append new public URLs to a textarea control (one per line) */
+      const append = (control: 'image_urls_text' | 'video_urls_text', urls: string[]) => {
+        if (urls.length === 0) return;
+        const current = this.form.getRawValue()[control].trim();
+        this.form.patchValue({
+          [control]: current ? current + '\n' + urls.join('\n') : urls.join('\n'),
+        });
+      };
+
+      if (images.length > 0) {
+        // Downscale before upload: phone photos are often 8-20 MB at
+        // 4000-8000px. 2000px JPEG is indistinguishable on the site and
+        // makes pages and PDFs load many times faster.
+        const optimized = await Promise.all(images.map(f => this.downscaleImage(f)));
+        append('image_urls_text', await this.rentalService.uploadPhotos(optimized, this.addressSlug()));
+      }
+      if (videos.length > 0) {
+        // Videos upload as-is — the size cap above keeps them under
+        // Supabase's per-file limit.
+        append('video_urls_text', await this.rentalService.uploadVideos(videos, this.addressSlug()));
+      }
     } catch {
       this.uploadError.set('Upload failed — check your connection and try again.');
     } finally {

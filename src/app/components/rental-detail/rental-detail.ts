@@ -39,6 +39,9 @@ export class RentalDetail implements OnInit {
     return r.image_url ? [r.image_url] : [];
   });
 
+  /** Walkthrough videos for the listing */
+  protected readonly videos = computed(() => this.rental()?.video_urls ?? []);
+
   /** Google Maps embed of the listing's address (no API key needed) */
   protected readonly mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
     const r = this.rental();
@@ -80,7 +83,7 @@ export class RentalDetail implements OnInit {
   /* ---------- map ---------- */
 
   /** Areas like "Downtown Windsor" aren't real municipalities —
-   normalize them so Google Maps finds the address */
+      normalize them so Google Maps finds the address */
   private municipality(city: string): string {
     if (/lasalle/i.test(city)) return 'LaSalle';
     if (/amherstburg/i.test(city)) return 'Amherstburg';
