@@ -1,4 +1,12 @@
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl, Title } from '@angular/platform-browser';
 import { RentalService } from '../rentals/services/rental.service';
@@ -15,6 +23,12 @@ import { Rental } from '../rentals/services/rental.model';
 
 const PHONE = '12269754568';
 
+/** One item in the unified gallery: a photo or a walkthrough video */
+interface MediaItem {
+  type: 'photo' | 'video';
+  url: string;
+}
+
 @Component({
   selector: 'app-rental-detail',
   imports: [RouterLink],
@@ -27,9 +41,11 @@ export class RentalDetail implements OnInit {
   private readonly titleService = inject(Title);
   private readonly sanitizer = inject(DomSanitizer);
 
+  private readonly thumbsEl = viewChild<ElementRef<HTMLDivElement>>('thumbsEl');
+
   protected readonly rental = signal<Rental | null>(null);
   protected readonly loading = signal(true);
-  protected readonly selectedPhoto = signal<string | null>(null);
+  protected readonly selected = signal<MediaItem | null>(null);
 
   /** All photos: gallery array, falling back to the single cover */
   protected readonly photos = computed(() => {
@@ -41,6 +57,12 @@ export class RentalDetail implements OnInit {
 
   /** Walkthrough videos for the listing */
   protected readonly videos = computed(() => this.rental()?.video_urls ?? []);
+
+  /** Unified gallery: all photos first, then the videos */
+  protected readonly media = computed<MediaItem[]>(() => [
+    ...this.photos().map(url => ({ type: 'photo' as const, url })),
+    ...this.videos().map(url => ({ type: 'video' as const, url })),
+  ]);
 
   /** Google Maps embed of the listing's address (no API key needed) */
   protected readonly mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
@@ -65,7 +87,7 @@ export class RentalDetail implements OnInit {
         this.rental.set(r);
         if (r) {
           this.titleService.setTitle(`${r.address} — Shalala Homes`);
-          this.selectedPhoto.set(this.photos()[0] ?? null);
+          this.selected.set(this.media()[0] ?? null);
         }
       }
     } catch {
@@ -76,8 +98,33 @@ export class RentalDetail implements OnInit {
     window.scrollTo({ top: 0 });
   }
 
-  select(photo: string): void {
-    this.selectedPhoto.set(photo);
+  /** Index of the media item currently shown in the main frame */
+  protected readonly currentIndex = computed(() => {
+    const current = this.selected();
+    return current ? this.media().findIndex(m => m.url === current.url) : -1;
+  });
+
+  select(item: MediaItem): void {
+    this.selected.set(item);
+    this.scrollActiveThumbIntoView();
+  }
+
+  /** Arrow navigation: -1 previous, +1 next (wraps around, videos included) */
+  step(delta: number): void {
+    const list = this.media();
+    if (list.length < 2) return;
+    const next = (this.currentIndex() + delta + list.length) % list.length;
+    this.selected.set(list[next]);
+    this.scrollActiveThumbIntoView();
+  }
+
+  /** Keep the highlighted thumbnail visible in the scrollable row */
+  private scrollActiveThumbIntoView(): void {
+    setTimeout(() => {
+      const active =
+        this.thumbsEl()?.nativeElement.querySelector('.detail__thumb--active');
+      active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
   }
 
   /* ---------- map ---------- */

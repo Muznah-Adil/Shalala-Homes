@@ -38,13 +38,16 @@
 
   &__grid {
     display: grid;
-    grid-template-columns: 7fr 5fr;
-    gap: 56px;
+    /* Gallery and details share the row equally so the photo
+       matches the details container's size */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 44px;
     align-items: start;
   }
 
   /* ---------- gallery ---------- */
   &__main {
+    position: relative;
     aspect-ratio: 4 / 3;
     background: linear-gradient(160deg, #1b2c3a, #0a1620);
     overflow: hidden;
@@ -52,22 +55,57 @@
     align-items: center;           /* ← add */
     justify-content: center;       /* ← add */
 
-    img {
+    img,
+    .detail__main-video {
       width: 100%;
+      max-width: 100%;
       height: 100%;
       object-fit: contain;
       display: block;
     }
   }
 
+  /* Arrows over the main photo */
+  &__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--ink);
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: background 0.2s;
+
+    &:hover { background: #fff; }
+    &--prev { left: 12px; }
+    &--next { right: 12px; }
+  }
+
+  /* One horizontally scrollable row of small thumbnails (all views) */
   &__thumbs {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
     margin-top: 12px;
+    padding-bottom: 4px;
+    scrollbar-width: none;          /* Firefox */
+    &::-webkit-scrollbar { display: none; } /* iOS / Chrome / Safari */
   }
 
   &__thumb {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
     aspect-ratio: 1;
     padding: 0;
     border: 2px solid transparent;
@@ -77,11 +115,15 @@
     opacity: 0.75;
     transition: opacity 0.2s, border-color 0.2s;
 
-    img {
+    position: relative;
+
+    img,
+    video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+      pointer-events: none; /* clicks hit the button, not the video */
     }
 
     &:hover { opacity: 1; }
@@ -90,28 +132,19 @@
       opacity: 1;
       border-color: var(--ink);
     }
-  }
 
-  /* ---------- video tour ---------- */
-  &__videos {
-    margin-top: 34px;
-  }
-
-  &__videos-title {
-    font-family: var(--font-serif);
-    font-weight: 500;
-    font-size: 22px;
-    color: var(--ink);
-    margin: 0 0 14px;
-  }
-
-  &__video {
-    width: 100%;
-    display: block;
-    background: #0a1620;
-    border: 1px solid var(--line);
-
-    & + & { margin-top: 12px; }
+    /* Small play badge marking video thumbnails */
+    &-play {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #fff;
+      background: rgba(10, 22, 32, 0.35);
+      pointer-events: none;
+    }
   }
 
   /* ---------- info ---------- */
@@ -249,19 +282,32 @@
 
 @media (max-width: 900px) {
   .detail__container { padding: 0 24px; }
-  .detail__grid { grid-template-columns: 1fr; gap: 34px; }
-  .detail__thumbs { grid-template-columns: repeat(5, 1fr); }
 
-  /* Mobile: let the main image show at its natural aspect ratio,
-     full width, no cropping */
+  /* minmax(0, 1fr) + min-width: 0 let the column shrink to the
+     screen; a bare 1fr refuses to go below the photos' intrinsic
+     width (1000px+), which blew the whole page out sideways */
+  .detail__grid { grid-template-columns: minmax(0, 1fr); gap: 34px; }
+  .detail__gallery,
+  .detail__info { min-width: 0; }
+
+  .detail__nav {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+
+  /* Mobile: full image visible (no cropping), but capped so a tall
+     portrait poster can never swallow the whole screen */
   .detail__main {
     aspect-ratio: auto;
     background: none;
 
-    img {
+    img,
+    .detail__main-video {
       width: 100%;
       height: auto;
-      object-fit: unset;
+      max-height: 70vh;
+      object-fit: contain;
     }
   }
 }

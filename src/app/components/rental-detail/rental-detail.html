@@ -13,33 +13,38 @@
     } @else {
       <div class="detail__grid">
 
-        <!-- ============ Gallery ============ -->
+        <!-- ============ Gallery (photos + videos) ============ -->
         <div class="detail__gallery">
           <div class="detail__main">
-            @if (selectedPhoto()) {
-              <img [src]="selectedPhoto()" [alt]="rental()!.address + ' photo'" />
+            @if (selected(); as item) {
+              @if (item.type === 'photo') {
+                <img [src]="item.url" [alt]="rental()!.address + ' photo'" />
+              } @else {
+                <video class="detail__main-video" controls preload="metadata" playsinline
+                       [src]="item.url"></video>
+              }
+            }
+            @if (media().length > 1) {
+              <button type="button" class="detail__nav detail__nav--prev"
+                      (click)="step(-1)" aria-label="Previous">&#8249;</button>
+              <button type="button" class="detail__nav detail__nav--next"
+                      (click)="step(1)" aria-label="Next">&#8250;</button>
             }
           </div>
-          @if (photos().length > 1) {
-            <div class="detail__thumbs">
-              @for (photo of photos(); track photo) {
+          @if (media().length > 1) {
+            <div class="detail__thumbs" #thumbsEl>
+              @for (item of media(); track item.url) {
                 <button type="button" class="detail__thumb"
-                        [class.detail__thumb--active]="selectedPhoto() === photo"
-                        (click)="select(photo)"
-                        [attr.aria-label]="'Photo ' + ($index + 1)">
-                  <img [src]="photo" [alt]="'Thumbnail ' + ($index + 1)" loading="lazy" />
+                        [class.detail__thumb--active]="selected()?.url === item.url"
+                        (click)="select(item)"
+                        [attr.aria-label]="(item.type === 'video' ? 'Video ' : 'Photo ') + ($index + 1)">
+                  @if (item.type === 'photo') {
+                    <img [src]="item.url" [alt]="'Thumbnail ' + ($index + 1)" loading="lazy" />
+                  } @else {
+                    <video [src]="item.url" preload="metadata" muted></video>
+                    <span class="detail__thumb-play" aria-hidden="true">&#9654;</span>
+                  }
                 </button>
-              }
-            </div>
-          }
-
-          <!-- ============ Video tour ============ -->
-          @if (videos().length > 0) {
-            <div class="detail__videos">
-              <h2 class="detail__videos-title">Video Tour</h2>
-              @for (video of videos(); track video) {
-                <video class="detail__video" controls preload="metadata" playsinline
-                       [src]="video"></video>
               }
             </div>
           }
