@@ -23,7 +23,6 @@ const FILTERS = [
   { key: 'downtown', label: 'Downtown Windsor', match: (c: string) => /downtown/i.test(c) },
   { key: 'east', label: 'East Windsor', match: (c: string) => /east/i.test(c) },
   { key: 'lasalle', label: 'LaSalle', match: (c: string) => /lasalle/i.test(c) },
-  { key: 'amherstburg', label: 'Amherstburg', match: (c: string) => /amherstburg/i.test(c) },
 ] as const;
 
 @Component({
